@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Хурлын Өрөө — IC Tower</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(160deg, #1F4E79 0%, #2E75B6 60%, #1a3a5c 100%);
+  min-height: 100vh;
+  padding: 16px 12px 32px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  max-width: 460px;
+  margin: 0 auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1F4E79, #2E75B6);
+  padding: 22px 20px 18px;
+  text-align: center;
+  color: #fff;
+}
+.header h1 { font-size: 19px; font-weight: 700; margin-bottom: 3px; }
+.header p  { font-size: 12px; opacity: 0.8; }
+
+/* Tab navigation */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #E8EEF5;
+}
+.tab {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.tab.active { color: #1F4E79; border-bottom-color: #2E75B6; }
+
+/* Panels */
+.panel { display: none; padding: 20px; }
+.panel.active { display: block; }
+
+/* Room selector */
+.room-select {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.room-card {
+  border: 2.5px solid #E0E0E0;
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #FAFAFA;
+}
+.room-card .icon { font-size: 24px; margin-bottom: 4px; }
+.room-card .name { font-size: 13px; font-weight: 700; color: #333; }
+.room-card .floor { font-size: 11px; color: #888; margin-top: 2px; }
+.room-card.r1.active { border-color: #43A047; background: #E8F5E9; }
+.room-card.r2.active { border-color: #FB8C00; background: #FFF8E1; }
+.room-card.r1:hover  { border-color: #81C784; }
+.room-card.r2:hover  { border-color: #FFB74D; }
+
+/* Form fields */
+.field { margin-bottom: 13px; }
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.field input, .field select {
+  width: 100%;
+  padding: 12px 13px;
+  border: 2px solid #E8EEF5;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #222;
+  background: #FAFAFA;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: #2E75B6;
+  background: #fff;
+}
+.field.has-error input, .field.has-error select { border-color: #E53935; background: #FFF5F5; }
+.field .err-msg { color: #E53935; font-size: 11px; margin-top: 4px; display: none; }
+.field.has-error .err-msg { display: block; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Submit button */
+.btn-book {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #1F4E79, #2E75B6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+.btn-book:active  { transform: scale(0.98); opacity: 0.92; }
+.btn-book:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Status */
+.status-box {
+  margin-top: 14px;
+  padding: 13px 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  display: none;
+  line-height: 1.5;
+}
+.status-box.success { background: #E8F5E9; color: #2E7D32; display: block; }
+.status-box.error   { background: #FFEBEE; color: #C62828; display: block; }
+.status-box.loading { background: #E3F2FD; color: #1565C0; display: block; }
+
+/* Sheet links panel */
+.sheet-links { display: flex; flex-direction: column; gap: 10px; }
+.sheet-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #222;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid #E8EEF5;
+  background: #FAFAFA;
+  transition: all 0.2s;
+}
+.sheet-link:hover, .sheet-link:active { background: #E3F2FD; border-color: #2E75B6; }
+.sheet-link .link-icon { font-size: 28px; flex-shrink: 0; }
+.sheet-link .link-text { display: flex; flex-direction: column; gap: 2px; }
+.sheet-link .link-sub  { font-size: 11px; color: #888; font-weight: 400; }
+.sheet-link .link-arrow { margin-left: auto; color: #AAA; font-size: 18px; }
+
+.panel-note {
+  font-size: 12px;
+  color: #AAA;
+  text-align: center;
+  margin-top: 16px;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1>🏢 Хурлын Өрөө Бүүклэх</h1>
+    <p>📍 СБД, Парисын гудамж, IC Tower</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('book')">✏️ Бүүклэх</button>
+    <button class="tab" onclick="switchTab('sheets')">📊 Хуваарь харах</button>
+  </div>
+
+  <!-- BOOKING PANEL -->
+  <div class="panel active" id="panel-book">
+
+    <!-- Өрөө сонгох -->
+    <div class="room-select">
+      <div class="room-card r1 active" id="rc-r1" onclick="selectRoom('La Marzocco')">
+        <div class="icon">🟩</div>
+        <div class="name">La Marzocco</div>
+        <div class="floor">702 тоот</div>
+      </div>
+      <div class="room-card r2" id="rc-r2" onclick="selectRoom('CoffeeNamu')">
+        <div class="icon">🟨</div>
+        <div class="name">CoffeeNamu</div>
+        <div class="floor">203 тоот</div>
+      </div>
+    </div>
+
+    <div class="field" id="f-person">
+      <label>👤 Нэр</label>
+      <input type="text" id="person" placeholder="Таны нэр" autocomplete="name">
+      <div class="err-msg">Нэрээ оруулна уу</div>
+    </div>
+
+    <div class="field" id="f-phone">
+      <label>📞 Утасны дугаар</label>
+      <input type="tel" id="phone" placeholder="99xxxxxx" autocomplete="tel">
+      <div class="err-msg">Утасны дугаар оруулна уу</div>
+    </div>
+
+    <div class="field" id="f-meeting">
+      <label>📌 Хурлын нэр</label>
+      <input type="text" id="meeting" placeholder="Хурлын нэр">
+      <div class="err-msg">Хурлын нэр оруулна уу</div>
+    </div>
+
+    <div class="field" id="f-date">
+      <label>📅 Огноо</label>
+      <input type="date" id="date">
+      <div class="err-msg">Огноо сонгоно уу</div>
+    </div>
+
+    <div class="row2">
+      <div class="field" id="f-start">
+        <label>🕐 Эхлэх цаг</label>
+        <select id="startTime"></select>
+        <div class="err-msg">Цаг сонгоно уу</div>
+      </div>
+      <div class="field" id="f-end">
+        <label>🕔 Дуусах цаг</label>
+        <select id="endTime"></select>
+        <div class="err-msg">Цаг сонгоно уу</div>
+      </div>
+    </div>
+
+    <button class="btn-book" id="btnBook" onclick="submitBooking()">
+      ✅ Хурал Бүүклэх
+    </button>
+
+    <div class="status-box" id="statusBox"></div>
+  </div>
+
+  <!-- SHEETS PANEL -->
+  <div class="panel" id="panel-sheets">
+    <div class="sheet-links">
+      <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1JpCU_3ToYgFMs4zSzV9baZahic72R-_282xT7HDkryk/edit#gid=1588490063" target="_blank">
+        <div class="link-icon">🟩</div>
+        <div class="link-text">
+          <span>La Marzocco</span>
+          <span class="link-sub">702 тоот — Хурлын хуваарь</span>
+        </div>
+        <div class="link-arrow">›</div>
+      </a>
+      <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1JpCU_3ToYgFMs4zSzV9baZahic72R-_282xT7HDkryk/edit#gid=2123292757" target="_blank">
+        <div class="link-icon">🟨</div>
+        <div class="link-text">
+          <span>CoffeeNamu</span>
+          <span class="link-sub">203 тоот — Хурлын хуваарь</span>
+        </div>
+        <div class="link-arrow">›</div>
+      </a>
+      <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1JpCU_3ToYgFMs4zSzV9baZahic72R-_282xT7HDkryk/edit#gid=1141636712" target="_blank">
+        <div class="link-icon">📊</div>
+        <div class="link-text">
+          <span>Бүүклэлтийн жагсаалт</span>
+          <span class="link-sub">Бүх бүүклэлтийн бүртгэл</span>
+        </div>
+        <div class="link-arrow">›</div>
+      </a>
+    </div>
+    <p class="panel-note">Google Sheets нээхэд та Google акаунтаараа нэвтэрсэн байх шаардлагатай.</p>
+  </div>
+</div>
+
+<script>
+// ── Тохиргоо ────────────────────────────────────────────────
+// Apps Script deploy хийсний дараа URL-ийг энд оруулна
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+let selectedRoom = 'La Marzocco';
+
+// ── Tab ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0&&tab==='book')||(i===1&&tab==='sheets'));
+  });
+  document.getElementById('panel-book').classList.toggle('active', tab==='book');
+  document.getElementById('panel-sheets').classList.toggle('active', tab==='sheets');
+}
+
+// ── Өрөө сонгох ─────────────────────────────────────────────
+function selectRoom(room) {
+  selectedRoom = room;
+  document.getElementById('rc-r1').classList.toggle('active', room==='La Marzocco');
+  document.getElementById('rc-r2').classList.toggle('active', room==='CoffeeNamu');
+}
+
+// ── Цагийн dropdown ──────────────────────────────────────────
+function buildTimes() {
+  const times = [];
+  for (let h = 8; h < 18; h++) {
+    times.push(pad(h)+':00');
+    times.push(pad(h)+':30');
+  }
+  times.push('18:00');
+  ['startTime','endTime'].forEach(id => {
+    const sel = document.getElementById(id);
+    times.forEach(t => {
+      const o = document.createElement('option');
+      o.value = o.textContent = t;
+      sel.appendChild(o);
+    });
+  });
+  document.getElementById('startTime').value = '09:00';
+  document.getElementById('endTime').value   = '10:00';
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// ── Өнөөдөр default ─────────────────────────────────────────
+function setToday() {
+  const d   = new Date();
+  const str = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  document.getElementById('date').value = str;
+  document.getElementById('date').min   = str;
+}
+
+// ── Validation ───────────────────────────────────────────────
+function validate() {
+  let ok = true;
+  const checks = [
+    ['f-person',  document.getElementById('person').value.trim(),  'Нэрээ оруулна уу'],
+    ['f-phone',   document.getElementById('phone').value.trim(),   'Утасны дугаар оруулна уу'],
+    ['f-meeting', document.getElementById('meeting').value.trim(), 'Хурлын нэр оруулна уу'],
+    ['f-date',    document.getElementById('date').value,           'Огноо сонгоно уу'],
+  ];
+  document.querySelectorAll('.field').forEach(f => f.classList.remove('has-error'));
+
+  checks.forEach(([id, val, msg]) => {
+    if (!val) {
+      const f = document.getElementById(id);
+      f.classList.add('has-error');
+      f.querySelector('.err-msg').textContent = msg;
+      ok = false;
+    }
+  });
+
+  // Өнгөрсөн огноо
+  if (document.getElementById('date').value) {
+    const sel   = new Date(document.getElementById('date').value+'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (sel < today) {
+      const f = document.getElementById('f-date');
+      f.classList.add('has-error');
+      f.querySelector('.err-msg').textContent = '⚠️ Өнгөрсөн огноо сонгосон байна!';
+      ok = false;
+    }
+  }
+
+  // Цаг
+  const s = document.getElementById('startTime').value;
+  const e = document.getElementById('endTime').value;
+  if (s >= e) {
+    ['f-start','f-end'].forEach(id => {
+      const f = document.getElementById(id);
+      f.classList.add('has-error');
+      f.querySelector('.err-msg').textContent = 'Цаг буруу байна';
+    });
+    ok = false;
+  }
+  return ok;
+}
+
+// ── Submit ───────────────────────────────────────────────────
+function submitBooking() {
+  if (!validate()) return;
+
+  const btn = document.getElementById('btnBook');
+  btn.disabled = true;
+  showStatus('⏳  Бүүклэж байна...', 'loading');
+
+  const p = {
+    action:    'book',
+    person:    document.getElementById('person').value.trim(),
+    phone:     document.getElementById('phone').value.trim(),
+    meeting:   document.getElementById('meeting').value.trim(),
+    date:      document.getElementById('date').value,
+    startTime: document.getElementById('startTime').value,
+    endTime:   document.getElementById('endTime').value,
+    room:      selectedRoom
+  };
+
+  fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams(p))
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      if (data.success) {
+        showStatus('✅  ' + data.message, 'success');
+        resetForm();
+      } else {
+        showStatus('❌  ' + data.message, 'error');
+      }
+    })
+    .catch(() => {
+      btn.disabled = false;
+      showStatus('❌  Холболтын алдаа гарлаа. Интернэт холболтоо шалгаад дахин оролдоно уу.', 'error');
+    });
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusBox');
+  el.textContent = msg;
+  el.className   = 'status-box ' + type;
+}
+
+function resetForm() {
+  document.getElementById('person').value  = '';
+  document.getElementById('phone').value   = '';
+  document.getElementById('meeting').value = '';
+  setToday();
+  document.getElementById('startTime').value = '09:00';
+  document.getElementById('endTime').value   = '10:00';
+  document.querySelectorAll('.field').forEach(f => f.classList.remove('has-error'));
+}
+
+// ── Init ─────────────────────────────────────────────────────
+buildTimes();
+setToday();
+</script>
+</body>
+</html>
